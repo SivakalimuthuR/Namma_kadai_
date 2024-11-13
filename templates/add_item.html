@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Add Item</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.name.label(class="form-label") }}
+            {{ form.name(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.price.label(class="form-label") }}
+            {{ form.price(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.qty.label(class="form-label") }}
+            {{ form.qty(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary">Add Item</button>
+    </form>
+{% endblock %}

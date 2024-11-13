@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>Add Sale</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.item_id.label(class="form-label") }}
+            {{ form.item_id(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.qty.label(class="form-label") }}
+            {{ form.qty(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.rate.label(class="form-label") }}
+            {{ form.rate(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary">Add Sale</button>
+    </form>
+{% endblock %}
