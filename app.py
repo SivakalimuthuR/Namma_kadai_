@@ -114,12 +114,17 @@ def add_sale():
 
     return render_template('add_sale.html', form=form, items=items)
 
-
-@app.route('/reports')
+@app.route('/view_reports')
 def view_reports():
-    company = Company.query.first()
-    items = Item.query.all()
-    return render_template('view_reports.html', cash_balance=company.cash_balance, items=items)
+    purchase_page = request.args.get('purchase_page', 1, type=int)
+    sale_page = request.args.get('sale_page', 1, type=int)
+
+    # Paginate Purchase and Sale separately
+    purchases = Purchase.query.paginate(page=purchase_page, per_page=5)
+    sales = Sale.query.paginate(page=sale_page, per_page=5)
+
+    return render_template('view_reports.html', purchases=purchases, sales=sales)
+
 
 
 if __name__ == '__main__':
