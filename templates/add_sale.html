@@ -4,18 +4,38 @@
     <h2>Add Sale</h2>
     <form method="POST">
         {{ form.hidden_tag() }}
+
         <div class="form-group">
             {{ form.item_id.label(class="form-label") }}
-            {{ form.item_id(class="form-control") }}
+            {{ form.item_id(class="form-control", id="item-select") }}
         </div>
+
         <div class="form-group">
             {{ form.qty.label(class="form-label") }}
-            {{ form.qty(class="form-control") }}
+            {{ form.qty(class="form-control", id="qty-field") }}
         </div>
+
         <div class="form-group">
             {{ form.rate.label(class="form-label") }}
             {{ form.rate(class="form-control") }}
         </div>
+
         <button type="submit" class="btn btn-primary">Add Sale</button>
     </form>
+
+    <script>
+        const items = {{ items | tojson }};
+        const qtyField = document.getElementById('qty-field');
+        const itemSelect = document.getElementById('item-select');
+
+        itemSelect.addEventListener('change', function() {
+            const selectedItem = this.value;
+            qtyField.placeholder = items[selectedItem] || 0;
+        });
+
+        // Set initial placeholder if an item is pre-selected
+        if (itemSelect.value) {
+            qtyField.placeholder = items[itemSelect.value];
+        }
+    </script>
 {% endblock %}
