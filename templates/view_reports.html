@@ -1,27 +1,72 @@
 {% extends "base.html" %}
-{% block content %}
-    <h2>Reports</h2>
-    <h3>Current Cash Balance: ₹{{ cash_balance }}</h3>
 
-    <h2>Item Stock Report</h2>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Item ID</th>
-                <th>Item Name</th>
-                <th>Price (₹)</th>
-                <th>Quantity</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in items %}
-            <tr>
-                <td>{{ item.id }}</td>
-                <td>{{ item.name }}</td>
-                <td>{{ item.price }}</td>
-                <td>{{ item.qty }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+{% block content %}
+<h2>Purchase History</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Item Name</th>
+            <th>Quantity</th>
+            <th>Rate</th>
+            <th>Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for purchase in purchases.items %}
+        <tr>
+            <td>{{ purchase.timestamp }}</td>
+            <td>{{ purchase.item.name }}</td>
+            <td>{{ purchase.qty }}</td>
+            <td>{{ purchase.rate }}</td>
+            <td>{{ purchase.amount }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No purchases found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Pagination for Purchases -->
+{% if purchases.has_prev %}
+    <a href="{{ url_for('view_reports', purchase_page=purchases.prev_num) }}">Previous</a>
+{% endif %}
+{% if purchases.has_next %}
+    <a href="{{ url_for('view_reports', purchase_page=purchases.next_num) }}">Next</a>
+{% endif %}
+
+<h2>Sales History</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Item Name</th>
+            <th>Quantity</th>
+            <th>Rate</th>
+            <th>Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sale in sales.items %}
+        <tr>
+            <td>{{ sale.timestamp }}</td>
+            <td>{{ sale.item.name }}</td>
+            <td>{{ sale.qty }}</td>
+            <td>{{ sale.rate }}</td>
+            <td>{{ sale.amount }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No sales found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Pagination for Sales -->
+{% if sales.has_prev %}
+    <a href="{{ url_for('view_reports', sale_page=sales.prev_num) }}">Previous</a>
+{% endif %}
+{% if sales.has_next %}
+    <a href="{{ url_for('view_reports', sale_page=sales.next_num) }}">Next</a>
+{% endif %}
+
 {% endblock %}
