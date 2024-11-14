@@ -1,25 +1,96 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h2>Add New Item</h2>
-    <form method="POST" action="{{ url_for('add_item') }}">
-        {{ form.hidden_tag() }}
-        
-        <div class="form-group">
-            {{ form.name.label }} 
-            {{ form.name(class="form-control") }}
-        </div>
-        
-        <div class="form-group">
-            {{ form.price.label }} 
-            {{ form.price(class="form-control") }}
-        </div>
-        
-        <div class="form-group">
-            {{ form.qty.label }} 
-            {{ form.qty(class="form-control") }}
-        </div>
-        
-        <button type="submit" class="btn btn-primary">Add Item</button>
-    </form>
+<h2>Add New Item</h2>
+
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        {{ form.name.label(class="form-label") }}
+        {{ form.name(class="form-control") }}
+    </div>
+    <div class="form-group">
+        {{ form.price.label(class="form-label") }}
+        {{ form.price(class="form-control") }}
+    </div>
+    <div class="form-group">
+        {{ form.qty.label(class="form-label") }}
+        {{ form.qty(class="form-control") }}
+    </div>
+    <button type="submit" class="btn btn-primary">Add Item</button>
+</form>
+
+<h3>Items</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="item-table-body">
+        {% for item in items %}
+        <tr id="item-row-{{ item.id }}">
+            <td>{{ item.id }}</td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.price }}</td>
+            <td>{{ item.qty }}</td>
+            <td>
+                <button class="btn btn-sm btn-warning" onclick="editItem({{ item.id }})">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteItem({{ item.id }})">Delete</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+function deleteItem(itemId) {
+    fetch(`/delete_item/${itemId}`, { method: 'POST' })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById(`item-row-${itemId}`).remove();
+            alert(data.message);
+        } else {
+            alert(data.message);
+        }
+    });
+}
+
+function editItem(itemId) {
+    const row = document.getElementById(`item-row-${itemId}`);
+    const name = row.cells[1].innerText;
+    const price = row.cells[2].innerText;
+    const qty = row.cells[3].innerText;
+
+    const newName = prompt("Edit Name:", name);
+    const newPrice = prompt("Edit Price:", price);
+    const newQty = prompt("Edit Quantity:", qty);
+
+    if (newName && newPrice && newQty) {
+        fetch(`/edit_item/${itemId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: newName, price: newPrice, qty: newQty })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                row.cells[1].innerText = newName;
+                row.cells[2].innerText = newPrice;
+                row.cells[3].innerText = newQty;
+                alert(data.message);
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+}
+</script>
 {% endblock %}

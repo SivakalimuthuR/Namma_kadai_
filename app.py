@@ -31,20 +31,42 @@ def home():
 @app.route('/add_item', methods=['GET', 'POST'])
 def add_item():
     form = ItemForm()
+    items = Item.query.all()  # Get all items to display in the table
+
     if form.validate_on_submit():
-        new_item = Item(name=form.name.data, price=form.price.data, qty=form.qty.data)
-        
-        try:
+        # Check if item already exists
+        if Item.query.filter_by(name=form.name.data).first():
+            flash('Item already exists.', 'danger')
+        else:
+            new_item = Item(name=form.name.data, price=form.price.data, qty=form.qty.data)
             db.session.add(new_item)
             db.session.commit()
             flash('Item added successfully!', 'success')
-            return redirect(url_for('add_item'))  # Redirect back to the add_item page
-        except IntegrityError:
-            db.session.rollback()  # Roll back any partial transactions
-            flash('Item already exists. Please add a different item.', 'danger')
-            return redirect(url_for('add_item'))  # Redirect back to add_item with flash
+        return redirect(url_for('add_item'))
 
-    return render_template('add_item.html', form=form)
+    return render_template('add_item.html', form=form, items=items)
+
+@app.route('/delete_item/<int:item_id>', methods=['POST'])
+def delete_item(item_id):
+    item = Item.query.get(item_id)
+    if item:
+        db.session.delete(item)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Item deleted successfully'})
+    return jsonify({'success': False, 'message': 'Item not found'})
+
+@app.route('/edit_item/<int:item_id>', methods=['POST'])
+def edit_item(item_id):
+    item = Item.query.get(item_id)
+    if item:
+        data = request.json
+        item.name = data.get('name', item.name)
+        item.price = data.get('price', item.price)
+        item.qty = data.get('qty', item.qty)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Item updated successfully'})
+    return jsonify({'success': False, 'message': 'Item not found'})
+
 
 
 
