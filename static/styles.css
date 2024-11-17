@@ -1,18 +1,22 @@
 /* General Styling */
 body {
-    background-color: #ffffff; /* White background */
-    font-family: 'Roboto', sans-serif; /* Clean, modern font */
-    color: #2A403D; /* Dark green text color */
+    background-color: #ffffff; /* White background for the entire page */
+    font-family: 'Poppins', sans-serif; /* Clean, modern font */
+    color: #d3d3d3; /* Light gray text color for main content */
     margin: 0;
     padding: 0;
-    line-height: 1.6;
+    line-height: 1.8;
 }
 
 h1, h2, h3 {
-    font-family: 'Montserrat', sans-serif; /* Elegant font for headings */
-    color: #2A403D; /* Dark green for headings */
-    font-weight: 600;
+    font-family: 'Raleway', sans-serif; /* Elegant font for headings */
+    color: #abf62d; /* Vibrant lime green for headings */
+    font-weight: 700;
     margin: 10px 0;
+}
+
+h2, h3 {
+    color: #888888; /* Medium gray for subheadings */
 }
 
 /* Table Styling */
@@ -23,28 +27,29 @@ h1, h2, h3 {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
     width: 100%;
     overflow: hidden;
+    border: 1px solid #e0e0e0; /* Light gray border */
 }
 
 .table th, .table td {
-    padding: 12px 20px;
+    padding: 14px 24px;
     text-align: left;
-    border-bottom: 1px solid #D05663; /* Muted red border */
+    border-bottom: 1px solid #e0e0e0; /* Light gray border for rows */
 }
 
 .table th {
-    background-color: #C3CBD6; /* Soft light gray for table headers */
-    color: #2A403D; /* Dark green for text */
-    font-weight: 500;
+    background-color: #778899; /* Soft lavender for headers */
+    color: #ffffff; /* White text for contrast */
+    font-weight: 600;
 }
 
 .table tr:hover {
-    background-color: #f7f7f7; /* Light hover effect */
+    background-color: #f0f0f0; /* Light gray hover effect */
 }
 
 /* Navbar Styling */
 .navbar {
     margin-bottom: 30px;
-    background-color: #2A403D; /* Dark green for navbar background */
+    background-color: #2ecc71; /* Emerald green for navbar background */
     padding: 15px 20px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
@@ -53,34 +58,30 @@ h1, h2, h3 {
 .navbar a {
     color: #ffffff; /* White text for navbar links */
     text-decoration: none;
-    font-size: 18px; /* Slightly larger font for better visibility */
-    margin-right: 15px;
+    font-size: 18px;
+    margin-right: 20px;
     font-weight: 500;
 }
 
 .navbar a:hover {
-    color: #C3CBD6; /* Soft light gray on hover for better contrast */
+    color: #d6a3fb; /* Soft lavender on hover */
     text-decoration: underline;
 }
 
 .navbar a:focus {
-    color: #D05663; /* Muted red for focus effect */
+    color: #17203D; /* Dark blue for focus */
 }
-
-/* Additional Navbar styling */
-.navbar:hover {
-    background-color: #748B6F; /* Slightly lighter muted olive green on hover */
-}
-
 
 /* Flash Message */
 #flash-message {
     transition: opacity 0.8s ease-in-out;
-    background-color: #D05663; /* Muted red for success message */
+    background-color: #abf62d; /* Vibrant lime green for flash message */
     color: #ffffff;
-    padding: 10px;
+    padding: 12px;
     border-radius: 5px;
-    margin: 15px 0;
+    margin: 20px 0;
+    border: 1px solid #ddd; /* Light gray border for flash message */
+    font-weight: 600;
 }
 
 #flash-message.fade {
@@ -90,10 +91,10 @@ h1, h2, h3 {
 
 /* Button Styling */
 button, .btn {
-    background-color: #748B6F; /* Muted olive green for buttons */
+    background-color: #abf62d; /* Vibrant lime green for buttons */
     color: #ffffff;
     border: none;
-    padding: 10px 20px;
+    padding: 12px 24px;
     font-size: 16px;
     border-radius: 5px;
     cursor: pointer;
@@ -101,7 +102,7 @@ button, .btn {
 }
 
 button:hover, .btn:hover {
-    background-color: #2A403D; /* Dark green on hover */
+    background-color: #d6a3fb; /* Soft lavender on hover */
 }
 
 button:focus, .btn:focus {
@@ -110,7 +111,7 @@ button:focus, .btn:focus {
 
 /* Adding some space for layout and clarity */
 .container {
-    margin: 30px auto;
-    max-width: 1200px;
+    margin: 40px auto;
+    max-width: 1100px;
     padding: 0 20px;
 }

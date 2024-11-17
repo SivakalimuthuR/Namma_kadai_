@@ -6,9 +6,10 @@
     <title>Namma Kadai</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #778899;">
         <a class="navbar-brand" href="{{ url_for('home') }}">Namma Kadai</a>
         <div class="navbar-text mx-auto" style="font-size: 1.5rem; font-weight: bold;">
             Balance: Rs. {{ balance }}
