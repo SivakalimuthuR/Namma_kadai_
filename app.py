@@ -28,13 +28,16 @@ initialize_data()
 def home():
     company = Company.query.first()
     items = Item.query.all()
-    balance = company.cash_balance if company else 0
-    return render_template('home.html', cash_balance=company.cash_balance, items=items, balance=balance)
+    balance = company.cash_balance if company else 0  # balance already defined here
+    return render_template('home.html', balance=balance, items=items)  # Only pass 'balance'
 
 @app.route('/add_item', methods=['GET', 'POST'])
 def add_item():
     form = ItemForm()
     items = Item.query.all()  # Get all items to display in the table
+    company = Company.query.first()
+    balance = company.cash_balance if company else 0
+
 
     if form.validate_on_submit():
         # Check if item already exists
@@ -47,7 +50,7 @@ def add_item():
             flash('Item added successfully!', 'success')
         return redirect(url_for('add_item'))
 
-    return render_template('add_item.html', form=form, items=items)
+    return render_template('add_item.html', form=form, items=items, balance=balance)
 
 @app.route('/delete_item/<int:item_id>', methods=['POST'])
 def delete_item(item_id):
@@ -85,6 +88,8 @@ def add_purchase():
     # Fetch available items from the database for dropdown
     items = Item.query.all()
     form.item_id.choices = [(item.id, item.name) for item in items]
+    company = Company.query.first()
+    balance = company.cash_balance if company else 0
 
     if form.validate_on_submit():
         item_ids = request.form.getlist('item_id')  # Use getlist without brackets
@@ -115,9 +120,9 @@ def add_purchase():
         db.session.commit()
 
         flash('Purchase added successfully!', 'success')
-        return render_template('add_purchase.html', form=form, items=items)
+        return render_template('add_purchase.html', form=form, items=items, balance=balance)
 
-    return render_template('add_purchase.html', form=form, items=items)
+    return render_template('add_purchase.html', form=form, items=items, balance=balance)
 
 
 @app.route('/add_sale', methods=['GET', 'POST'])
@@ -187,17 +192,20 @@ def add_sale():
 def view_reports():
     purchase_page = request.args.get('purchase_page', default=1, type=int)
     sale_page = request.args.get('sale_page', default=1, type=int)
+    company = Company.query.first()
+    balance = company.cash_balance if company else 0
 
-    # Get paginated data
-    purchases = Purchase.query.paginate(page=purchase_page, per_page=5)
-    sales = Sale.query.paginate(page=sale_page, per_page=5)
+    # Get paginated data in descending order
+    purchases = Purchase.query.order_by(Purchase.timestamp.desc()).paginate(page=purchase_page, per_page=5)
+    sales = Sale.query.order_by(Sale.timestamp.desc()).paginate(page=sale_page, per_page=5)
 
     return render_template(
         'view_reports.html',
         purchases=purchases,
         sales=sales,
         purchase_page=purchase_page,
-        sale_page=sale_page
+        sale_page=sale_page,
+        balance=balance
     )
 
 if __name__ == '__main__':

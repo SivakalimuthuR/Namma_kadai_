@@ -1,24 +1,116 @@
+/* General Styling */
 body {
-    background-color: #f8f9fa;
+    background-color: #ffffff; /* White background */
+    font-family: 'Roboto', sans-serif; /* Clean, modern font */
+    color: #2A403D; /* Dark green text color */
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
 }
 
 h1, h2, h3 {
-    color: #333;
+    font-family: 'Montserrat', sans-serif; /* Elegant font for headings */
+    color: #2A403D; /* Dark green for headings */
+    font-weight: 600;
+    margin: 10px 0;
 }
 
+/* Table Styling */
 .table {
-    margin-top: 20px;
-    background-color: #fff;
+    margin-top: 30px;
+    background-color: #ffffff; /* White background for table */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    width: 100%;
+    overflow: hidden;
 }
 
-.navbar {
-    margin-bottom: 20px;
+.table th, .table td {
+    padding: 12px 20px;
+    text-align: left;
+    border-bottom: 1px solid #D05663; /* Muted red border */
 }
+
+.table th {
+    background-color: #C3CBD6; /* Soft light gray for table headers */
+    color: #2A403D; /* Dark green for text */
+    font-weight: 500;
+}
+
+.table tr:hover {
+    background-color: #f7f7f7; /* Light hover effect */
+}
+
+/* Navbar Styling */
+.navbar {
+    margin-bottom: 30px;
+    background-color: #2A403D; /* Dark green for navbar background */
+    padding: 15px 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.navbar a {
+    color: #ffffff; /* White text for navbar links */
+    text-decoration: none;
+    font-size: 18px; /* Slightly larger font for better visibility */
+    margin-right: 15px;
+    font-weight: 500;
+}
+
+.navbar a:hover {
+    color: #C3CBD6; /* Soft light gray on hover for better contrast */
+    text-decoration: underline;
+}
+
+.navbar a:focus {
+    color: #D05663; /* Muted red for focus effect */
+}
+
+/* Additional Navbar styling */
+.navbar:hover {
+    background-color: #748B6F; /* Slightly lighter muted olive green on hover */
+}
+
+
+/* Flash Message */
 #flash-message {
-    transition: opacity 1s ease-out;
+    transition: opacity 0.8s ease-in-out;
+    background-color: #D05663; /* Muted red for success message */
+    color: #ffffff;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 15px 0;
 }
 
 #flash-message.fade {
     opacity: 0;
     display: none;
+}
+
+/* Button Styling */
+button, .btn {
+    background-color: #748B6F; /* Muted olive green for buttons */
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover, .btn:hover {
+    background-color: #2A403D; /* Dark green on hover */
+}
+
+button:focus, .btn:focus {
+    outline: none;
+}
+
+/* Adding some space for layout and clarity */
+.container {
+    margin: 30px auto;
+    max-width: 1200px;
+    padding: 0 20px;
 }
