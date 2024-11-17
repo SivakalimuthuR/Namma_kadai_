@@ -1,13 +1,16 @@
+from importlib.metadata import EntryPoint
 from flask import Flask, render_template, redirect, url_for, flash, request
 from config import Config
 from models import db, Company, Item, Purchase, Sale
 from forms import ItemForm, PurchaseForm, SaleForm
 from sqlalchemy.exc import IntegrityError
 from flask import jsonify
+# from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
+# csrf = CSRFProtect(app)
 
 def initialize_data():
     with app.app_context():
@@ -25,8 +28,8 @@ initialize_data()
 def home():
     company = Company.query.first()
     items = Item.query.all()
-    return render_template('home.html', cash_balance=company.cash_balance, items=items)
-
+    balance = company.cash_balance if company else 0
+    return render_template('home.html', cash_balance=company.cash_balance, items=items, balance=balance)
 
 @app.route('/add_item', methods=['GET', 'POST'])
 def add_item():
@@ -60,72 +63,142 @@ def edit_item(item_id):
     item = Item.query.get(item_id)
     if item:
         data = request.json
-        item.name = data.get('name', item.name)
+        new_name = data.get('name', item.name)
+
+        # Check if the new name already exists in another item
+        existing_item = Item.query.filter_by(name=new_name).first()
+        if existing_item and existing_item.id != item.id:
+            return jsonify({'success': False, 'message': 'Item with this name already exists.'})
+
+        # Update item fields
+        item.name = new_name
         item.price = data.get('price', item.price)
         item.qty = data.get('qty', item.qty)
         db.session.commit()
         return jsonify({'success': True, 'message': 'Item updated successfully'})
     return jsonify({'success': False, 'message': 'Item not found'})
 
-
-
-
 @app.route('/purchase/add', methods=['GET', 'POST'])
 def add_purchase():
     form = PurchaseForm()
+    
+    # Fetch available items from the database for dropdown
+    items = Item.query.all()
+    form.item_id.choices = [(item.id, item.name) for item in items]
+
     if form.validate_on_submit():
-        item = Item.query.get(form.item_id.data)
+        item_ids = request.form.getlist('item_id')  # Use getlist without brackets
+        quantities = request.form.getlist('qty')
+        rates = request.form.getlist('rate')
+
+        items_to_purchase = []
+        total_amount = 0
         company = Company.query.first()
-        amount = form.qty.data * form.rate.data
-        if company.cash_balance < amount:
-            flash('Insufficient balance for purchase!', 'danger')
-        else:
-            purchase = Purchase(item_id=form.item_id.data, qty=form.qty.data, rate=form.rate.data, amount=amount)
-            item.qty += form.qty.data
-            company.cash_balance -= amount
-            db.session.add(purchase)
-            db.session.commit()
-            flash('Purchase added successfully!', 'success')
-            return redirect(url_for('home'))
-    return render_template('add_purchase.html', form=form)
+
+        for i in range(len(item_ids)):
+            item = Item.query.get(item_ids[i])
+            qty = int(quantities[i])  # Convert to integer
+            rate = float(rates[i])     # Convert to float
+            amount = qty * rate
+
+            if company.cash_balance < amount:
+                flash('Insufficient balance for purchase!', 'danger')
+                return redirect(url_for('add_purchase'))
+
+            purchase = Purchase(item_id=item_ids[i], qty=qty, rate=rate, amount=amount)
+            items_to_purchase.append(purchase)
+            item.qty += qty
+            total_amount += amount
+
+        company.cash_balance -= total_amount
+        db.session.add_all(items_to_purchase)
+        db.session.commit()
+
+        flash('Purchase added successfully!', 'success')
+        return render_template('add_purchase.html', form=form, items=items)
+
+    return render_template('add_purchase.html', form=form, items=items)
+
 
 @app.route('/add_sale', methods=['GET', 'POST'])
 def add_sale():
-    form = SaleForm()
-    items = {item.id: item.qty for item in Item.query.all()}  # item quantities for JavaScript
-    
-    if form.validate_on_submit():
-        item_id = form.item_id.data
-        qty = form.qty.data
-        rate = form.rate.data
-        amount = qty * rate
+    items = {item.id: (item.name, item.qty) for item in Item.query.all()}  # Get items from DB
+    company = Company.query.first()  # Get the company balance
+    balance = company.cash_balance if company else 0
 
-        sale = Sale(item_id=item_id, qty=qty, rate=rate, amount=amount)
-        
-        item = Item.query.get(item_id)
-        if item and item.qty >= qty:  # Ensure enough stock
-            item.qty -= qty
-            db.session.add(sale)
-            db.session.commit()
-            flash('Sale added successfully!', 'success')
-            return redirect(url_for('add_sale'))
-        else:
-            flash('Not enough quantity in stock for this sale.', 'danger')
+    if request.method == 'POST':
+        try:
+            # Retrieve the form data
+            sales = request.form.to_dict(flat=False)
+            print("Sales data:", sales)  # Debugging
 
-    return render_template('add_sale.html', form=form, items=items)
+            total_sale_amount = 0
+            sales_to_add = []  # To store sale objects
+
+            # The number of sales entries to process (based on how many item_ids exist)
+            sale_count = sum(1 for key in sales.keys() if 'item_id' in key)
+            print(f"Sale Count: {sale_count}")
+
+            # Loop through each sale entry
+            for i in range(sale_count):
+                print(f"Processing Sale {i}...")
+                
+                item_ids = sales[f'sales[{i}][item_id]']  # This will contain multiple item IDs for a single sale
+                qty = int(sales[f'sales[{i}][qty]'][0])  # Quantity
+                rate = float(sales[f'sales[{i}][rate]'][0])  # Rate
+                
+                # Check each item in the current sale entry
+                for item_id in item_ids:
+                    item_id = int(item_id)  # Convert item_id to int
+                    item = Item.query.get(item_id)  # Get the item from DB
+                    
+                    if item and item.qty >= qty:
+                        # Process sale if stock is sufficient
+                        amount = qty * rate
+                        sale = Sale(item_id=item_id, qty=qty, rate=rate, amount=amount)
+                        sales_to_add.append(sale)
+                        item.qty -= qty  # Deduct the quantity from stock
+                        total_sale_amount += amount  # Add to total sale amount
+                    else:
+                        flash(f"Not enough stock for item {item_id}.", 'danger')
+                        return redirect(url_for('add_sale'))
+
+            # If there are valid sales, commit to database
+            if sales_to_add:
+                company.cash_balance += total_sale_amount  # Update balance
+                db.session.add_all(sales_to_add)
+                db.session.commit()  # Commit sales transaction
+                flash('Sales successfully added!', 'success')
+            else:
+                flash('Sale processing failed.', 'danger')
+
+        except Exception as e:
+            db.session.rollback()  # Rollback in case of error
+            print("Error processing sale:", e)
+            flash("An error occurred while processing the sale.", 'danger')
+
+        return redirect(url_for('add_sale'))
+
+    return render_template('add_sale.html', items=items, balance=balance)
+
+
 
 @app.route('/view_reports')
 def view_reports():
-    purchase_page = request.args.get('purchase_page', 1, type=int)
-    sale_page = request.args.get('sale_page', 1, type=int)
+    purchase_page = request.args.get('purchase_page', default=1, type=int)
+    sale_page = request.args.get('sale_page', default=1, type=int)
 
-    # Paginate Purchase and Sale separately
+    # Get paginated data
     purchases = Purchase.query.paginate(page=purchase_page, per_page=5)
     sales = Sale.query.paginate(page=sale_page, per_page=5)
 
-    return render_template('view_reports.html', purchases=purchases, sales=sales)
-
-
+    return render_template(
+        'view_reports.html',
+        purchases=purchases,
+        sales=sales,
+        purchase_page=purchase_page,
+        sale_page=sale_page
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)

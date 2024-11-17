@@ -14,3 +14,11 @@ h1, h2, h3 {
 .navbar {
     margin-bottom: 20px;
 }
+#flash-message {
+    transition: opacity 1s ease-out;
+}
+
+#flash-message.fade {
+    opacity: 0;
+    display: none;
+}

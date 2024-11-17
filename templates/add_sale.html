@@ -1,41 +1,84 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h2>Add Sale</h2>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-
-        <div class="form-group">
-            {{ form.item_id.label(class="form-label") }}
-            {{ form.item_id(class="form-control", id="item-select") }}
+<h2>Add Sale</h2>
+<form method="POST" id="add-sale-form">
+    <div id="sales-entries">
+        <div class="sale-entry">
+            <div class="form-group">
+                <label>Item</label>
+                <select name="sales[0][item_id]" class="form-control item-select" required>
+                    {% for item_id, (item_name, item_qty) in items.items() %}
+                        <option value="{{ item_id }}">{{ item_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Quantity</label>
+                <input type="number" name="sales[0][qty]" class="form-control qty-field" min="1" required>
+            </div>
+            <div class="form-group">
+                <label>Rate</label>
+                <input type="number" name="sales[0][rate]" class="form-control" step="0.01" required>
+            </div>
+            <button type="button" class="btn btn-danger remove-entry">Remove</button>
+            <hr>
         </div>
+    </div>
 
-        <div class="form-group">
-            {{ form.qty.label(class="form-label") }}
-            {{ form.qty(class="form-control", id="qty-field") }}
-        </div>
+    <button type="button" class="btn btn-secondary" id="add-entry-btn">Add Another Item</button>
+    <button type="submit" class="btn btn-primary">Add Sale</button>
+</form>
 
-        <div class="form-group">
-            {{ form.rate.label(class="form-label") }}
-            {{ form.rate(class="form-control") }}
-        </div>
+<h3>Item Table</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Available Quantity</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item_id, (item_name, item_qty) in items.items() %}
+        <tr>
+            <td>{{ item_id }}</td>
+            <td>{{ item_name }}</td>
+            <td>{{ item_qty }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
-        <button type="submit" class="btn btn-primary">Add Sale</button>
-    </form>
-
-    <script>
-        const items = {{ items | tojson }};
-        const qtyField = document.getElementById('qty-field');
-        const itemSelect = document.getElementById('item-select');
-
-        itemSelect.addEventListener('change', function() {
-            const selectedItem = this.value;
-            qtyField.placeholder = items[selectedItem] || 0;
+<script>
+    const items = {{ items | tojson }};
+    let entryCount = 1;  // Starting index for the dynamic entries.
+    
+    document.getElementById('add-entry-btn').addEventListener('click', function() {
+        const newEntry = document.querySelector('.sale-entry').cloneNode(true);
+        newEntry.querySelectorAll('input, select').forEach(function(input) {
+            // Replace the index in the input name to reflect the next entry in the array
+            input.name = input.name.replace(/\[\d+\]/, `[${entryCount}]`);
+            input.value = '';  // Clear the input value for the new field
         });
+        document.getElementById('sales-entries').appendChild(newEntry);
+        entryCount++;  // Increment the entry index for the next form fields
+    });
 
-        // Set initial placeholder if an item is pre-selected
-        if (itemSelect.value) {
-            qtyField.placeholder = items[itemSelect.value];
+    // Remove a sale entry
+    document.getElementById('sales-entries').addEventListener('click', function (event) {
+        if (event.target.classList.contains('remove-entry')) {
+            event.target.closest('.sale-entry').remove();
         }
-    </script>
+    });
+
+    // Update quantity placeholder based on selected item stock
+    document.addEventListener('change', function (event) {
+        if (event.target.classList.contains('item-select')) {
+            const selectedItemId = event.target.value;
+            const qtyField = event.target.closest('.sale-entry').querySelector('.qty-field');
+            qtyField.placeholder = items[selectedItemId][1] || 0;  // Display available quantity
+        }
+    });
+</script>
 {% endblock %}

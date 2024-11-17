@@ -1,20 +1,73 @@
 {% extends "base.html" %}
+
 {% block content %}
     <h2>Add Purchase</h2>
-    <form method="POST">
+    <form method="POST" id="purchase-form">
         {{ form.hidden_tag() }}
-        <div class="form-group">
-            {{ form.item_id.label(class="form-label") }}
-            {{ form.item_id(class="form-control") }}
+        <div id="purchase-entries">
+            <div class="purchase-entry">
+                <div class="form-group">
+                    {{ form.item_id.label(class="form-label") }}
+                    {{ form.item_id(class="form-control item-select") }}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.qty.label(class="form-label") }}
+                    {{ form.qty(class="form-control qty-field") }}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.rate.label(class="form-label") }}
+                    {{ form.rate(class="form-control") }}
+                </div>
+                
+                <button type="button" class="btn btn-danger remove-entry">Remove</button>
+                <hr>
+            </div>
         </div>
-        <div class="form-group">
-            {{ form.qty.label(class="form-label") }}
-            {{ form.qty(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.rate.label(class="form-label") }}
-            {{ form.rate(class="form-control") }}
-        </div>
+        <button type="button" class="btn btn-secondary" id="add-entry-btn">Add Another Item</button>
         <button type="submit" class="btn btn-primary">Add Purchase</button>
     </form>
+
+    <h3>Available Items</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Available Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.qty }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <script>
+        let entryCount = 1; // Start from 1 since the first entry is already there
+        document.getElementById('add-entry-btn').addEventListener('click', function() {
+            const newEntry = document.querySelector('.purchase-entry').cloneNode(true);
+            
+            // Update the names of inputs correctly for WTForms to recognize them as lists
+            newEntry.querySelectorAll('input, select').forEach(function(input) {
+                input.name = input.name.replace(/\[\d+\]/, `[${entryCount}]`);
+                input.value = '';  // Clear input value for new field
+            });
+            
+            document.getElementById('purchase-entries').appendChild(newEntry);
+            entryCount++;
+        });
+    
+        // Remove a purchase entry
+        document.getElementById('purchase-entries').addEventListener('click', function(event) {
+            if (event.target.classList.contains('remove-entry')) {
+                event.target.closest('.purchase-entry').remove();
+            }
+        });
+    </script>
 {% endblock %}

@@ -87,10 +87,11 @@ function editItem(itemId) {
                 row.cells[3].innerText = newQty;
                 alert(data.message);
             } else {
-                alert(data.message);
+                alert(data.message); // Show the error message (e.g., "Item with this name already exists.")
             }
         });
     }
 }
+
 </script>
 {% endblock %}
