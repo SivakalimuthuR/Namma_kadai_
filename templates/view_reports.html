@@ -29,17 +29,14 @@
     </tbody>
 </table>
 
-<!-- Display Current Page Number for Purchases -->
 <p>Page {{ purchases.page }} of {{ purchases.pages }}</p>
 
-<!-- Pagination for Purchases -->
 {% if purchases.has_prev %}
     <a href="{{ url_for('view_reports', purchase_page=purchases.prev_num, sale_page=sale_page) }}">Previous</a>
 {% endif %}
 {% if purchases.has_next %}
     <a href="{{ url_for('view_reports', purchase_page=purchases.next_num, sale_page=sale_page) }}">Next</a>
 {% endif %}
-
 
 <h2>Sales History</h2>
 <table class="table table-striped">
@@ -69,16 +66,13 @@
     </tbody>
 </table>
 
-<!-- Display Current Page Number for Sales -->
 <p>Page {{ sales.page }} of {{ sales.pages }}</p>
 
-<!-- Pagination for Sales -->
 {% if sales.has_prev %}
     <a href="{{ url_for('view_reports', sale_page=sales.prev_num, purchase_page=purchase_page) }}">Previous</a>
 {% endif %}
 {% if sales.has_next %}
     <a href="{{ url_for('view_reports', sale_page=sales.next_num, purchase_page=purchase_page) }}">Next</a>
 {% endif %}
-
 
 {% endblock %}

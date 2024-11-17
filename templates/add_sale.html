@@ -52,32 +52,29 @@
 
 <script>
     const items = {{ items | tojson }};
-    let entryCount = 1;  // Starting index for the dynamic entries.
-    
+    let entryCount = 1;
+
     document.getElementById('add-entry-btn').addEventListener('click', function() {
         const newEntry = document.querySelector('.sale-entry').cloneNode(true);
-        newEntry.querySelectorAll('input, select').forEach(function(input) {
-            // Replace the index in the input name to reflect the next entry in the array
+        newEntry.querySelectorAll('input, select').forEach(input => {
             input.name = input.name.replace(/\[\d+\]/, `[${entryCount}]`);
-            input.value = '';  // Clear the input value for the new field
+            input.value = '';
         });
         document.getElementById('sales-entries').appendChild(newEntry);
-        entryCount++;  // Increment the entry index for the next form fields
+        entryCount++;
     });
 
-    // Remove a sale entry
     document.getElementById('sales-entries').addEventListener('click', function (event) {
         if (event.target.classList.contains('remove-entry')) {
             event.target.closest('.sale-entry').remove();
         }
     });
 
-    // Update quantity placeholder based on selected item stock
     document.addEventListener('change', function (event) {
         if (event.target.classList.contains('item-select')) {
             const selectedItemId = event.target.value;
             const qtyField = event.target.closest('.sale-entry').querySelector('.qty-field');
-            qtyField.placeholder = items[selectedItemId][1] || 0;  // Display available quantity
+            qtyField.placeholder = items[selectedItemId][1] || 0;
         }
     });
 </script>

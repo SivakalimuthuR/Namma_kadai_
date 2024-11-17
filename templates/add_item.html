@@ -39,8 +39,8 @@
             <td>{{ item.price }}</td>
             <td>{{ item.qty }}</td>
             <td>
-                <button class="btn btn-sm btn-warning" onclick="editItem({{ item.id }})">Edit</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteItem({{ item.id }})">Delete</button>
+                <button class="btn btn-warning btn-sm" onclick="editItem({{ item.id }})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteItem({{ item.id }})">Delete</button>
             </td>
         </tr>
         {% endfor %}
@@ -50,22 +50,20 @@
 <script>
 function deleteItem(itemId) {
     fetch(`/delete_item/${itemId}`, { method: 'POST' })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById(`item-row-${itemId}`).remove();
-            alert(data.message);
-        } else {
-            alert(data.message);
-        }
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`item-row-${itemId}`).remove();
+                alert(data.message);
+            } else {
+                alert(data.message);
+            }
+        });
 }
 
 function editItem(itemId) {
     const row = document.getElementById(`item-row-${itemId}`);
-    const name = row.cells[1].innerText;
-    const price = row.cells[2].innerText;
-    const qty = row.cells[3].innerText;
+    const [name, price, qty] = [row.cells[1].innerText, row.cells[2].innerText, row.cells[3].innerText];
 
     const newName = prompt("Edit Name:", name);
     const newPrice = prompt("Edit Price:", price);
@@ -74,24 +72,19 @@ function editItem(itemId) {
     if (newName && newPrice && newQty) {
         fetch(`/edit_item/${itemId}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: newName, price: newPrice, qty: newQty })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                row.cells[1].innerText = newName;
-                row.cells[2].innerText = newPrice;
-                row.cells[3].innerText = newQty;
+                Object.assign(row.cells, { 1: newName, 2: newPrice, 3: newQty });
                 alert(data.message);
             } else {
-                alert(data.message); // Show the error message (e.g., "Item with this name already exists.")
+                alert(data.message);
             }
         });
     }
 }
-
 </script>
 {% endblock %}

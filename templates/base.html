@@ -8,14 +8,10 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light d-flex justify-content-between">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="{{ url_for('home') }}">Namma Kadai</a>
-        <div class="navbar-nav d-flex justify-content-between" style="flex-grow: 1;">
-            <!-- This div is for centering the balance with increased font size -->
-            <div class="navbar-text mx-auto" style="font-size: 1.5rem; font-weight: bold;">
-                Balance: Rs. {{ balance }}
-            </div>
-            
+        <div class="navbar-text mx-auto" style="font-size: 1.5rem; font-weight: bold;">
+            Balance: Rs. {{ balance }}
         </div>
         <div class="navbar-nav ml-auto">
             <a class="nav-item nav-link" href="{{ url_for('add_item') }}">Add Item</a>

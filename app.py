@@ -10,44 +10,37 @@ from flask import jsonify
 app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
-# csrf = CSRFProtect(app)
 
-def initialize_data():
-    with app.app_context():
-        db.create_all()
-        if not Company.query.first():
-            # Create initial company record
-            company = Company(name="Namma Kadai", cash_balance=1000)
-            db.session.add(company)
-            db.session.commit()
+# Initialize data when the app starts
+with app.app_context():
+    db.create_all()
+    if not Company.query.first():
+        # Create initial company record
+        db.session.add(Company(name="Namma Kadai", cash_balance=1000))
+        db.session.commit()
 
-initialize_data()
-
-# Define your routes here
 @app.route('/')
 def home():
     company = Company.query.first()
     items = Item.query.all()
-    balance = company.cash_balance if company else 0  # balance already defined here
-    return render_template('home.html', balance=balance, items=items)  # Only pass 'balance'
+    balance = company.cash_balance if company else 0
+    return render_template('home.html', balance=balance, items=items)
+
+# *********************************************************************************************************
 
 @app.route('/add_item', methods=['GET', 'POST'])
 def add_item():
     form = ItemForm()
-    items = Item.query.all()  # Get all items to display in the table
-    company = Company.query.first()
-    balance = company.cash_balance if company else 0
-
+    items = Item.query.all()  # Display all items
+    balance = Company.query.first().cash_balance if Company.query.first() else 0
 
     if form.validate_on_submit():
-        # Check if item already exists
-        if Item.query.filter_by(name=form.name.data).first():
-            flash('Item already exists.', 'danger')
-        else:
-            new_item = Item(name=form.name.data, price=form.price.data, qty=form.qty.data)
-            db.session.add(new_item)
+        if not Item.query.filter_by(name=form.name.data).first():  # Add only if item doesn't exist
+            db.session.add(Item(name=form.name.data, price=form.price.data, qty=form.qty.data))
             db.session.commit()
             flash('Item added successfully!', 'success')
+        else:
+            flash('Item already exists.', 'danger')
         return redirect(url_for('add_item'))
 
     return render_template('add_item.html', form=form, items=items, balance=balance)
@@ -68,19 +61,16 @@ def edit_item(item_id):
         data = request.json
         new_name = data.get('name', item.name)
 
-        # Check if the new name already exists in another item
-        existing_item = Item.query.filter_by(name=new_name).first()
-        if existing_item and existing_item.id != item.id:
-            return jsonify({'success': False, 'message': 'Item with this name already exists.'})
-
-        # Update item fields
-        item.name = new_name
-        item.price = data.get('price', item.price)
-        item.qty = data.get('qty', item.qty)
-        db.session.commit()
-        return jsonify({'success': True, 'message': 'Item updated successfully'})
+        if not Item.query.filter(Item.name == new_name, Item.id != item.id).first():  # Avoid duplicate names
+            item.name = new_name
+            item.price = data.get('price', item.price)
+            item.qty = data.get('qty', item.qty)
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Item updated successfully'})
+        return jsonify({'success': False, 'message': 'Item with this name already exists.'})
     return jsonify({'success': False, 'message': 'Item not found'})
 
+# *********************************************************************************************************
 @app.route('/purchase/add', methods=['GET', 'POST'])
 def add_purchase():
     form = PurchaseForm()
@@ -123,70 +113,54 @@ def add_purchase():
         return render_template('add_purchase.html', form=form, items=items, balance=balance)
 
     return render_template('add_purchase.html', form=form, items=items, balance=balance)
-
-
+# *********************************************************************************************************
 @app.route('/add_sale', methods=['GET', 'POST'])
 def add_sale():
-    items = {item.id: (item.name, item.qty) for item in Item.query.all()}  # Get items from DB
-    company = Company.query.first()  # Get the company balance
+    items = {item.id: (item.name, item.qty) for item in Item.query.all()}
+    company = Company.query.first()
     balance = company.cash_balance if company else 0
 
     if request.method == 'POST':
+        sales = request.form.to_dict(flat=False)
+        total_sale_amount = 0
+        sales_to_add = []
+
         try:
-            # Retrieve the form data
-            sales = request.form.to_dict(flat=False)
-            print("Sales data:", sales)  # Debugging
+            # Calculate the number of sales entries based on `item_id` keys
+            sale_count = sum(1 for key in sales if 'item_id' in key)
 
-            total_sale_amount = 0
-            sales_to_add = []  # To store sale objects
-
-            # The number of sales entries to process (based on how many item_ids exist)
-            sale_count = sum(1 for key in sales.keys() if 'item_id' in key)
-            print(f"Sale Count: {sale_count}")
-
-            # Loop through each sale entry
             for i in range(sale_count):
-                print(f"Processing Sale {i}...")
-                
-                item_ids = sales[f'sales[{i}][item_id]']  # This will contain multiple item IDs for a single sale
-                qty = int(sales[f'sales[{i}][qty]'][0])  # Quantity
-                rate = float(sales[f'sales[{i}][rate]'][0])  # Rate
-                
-                # Check each item in the current sale entry
+                item_ids = map(int, sales[f'sales[{i}][item_id]'])
+                qty = int(sales[f'sales[{i}][qty]'][0])
+                rate = float(sales[f'sales[{i}][rate]'][0])
+
                 for item_id in item_ids:
-                    item_id = int(item_id)  # Convert item_id to int
-                    item = Item.query.get(item_id)  # Get the item from DB
-                    
+                    item = Item.query.get(item_id)
                     if item and item.qty >= qty:
-                        # Process sale if stock is sufficient
                         amount = qty * rate
-                        sale = Sale(item_id=item_id, qty=qty, rate=rate, amount=amount)
-                        sales_to_add.append(sale)
-                        item.qty -= qty  # Deduct the quantity from stock
-                        total_sale_amount += amount  # Add to total sale amount
+                        sales_to_add.append(Sale(item_id=item_id, qty=qty, rate=rate, amount=amount))
+                        item.qty -= qty
+                        total_sale_amount += amount
                     else:
                         flash(f"Not enough stock for item {item_id}.", 'danger')
                         return redirect(url_for('add_sale'))
 
-            # If there are valid sales, commit to database
             if sales_to_add:
-                company.cash_balance += total_sale_amount  # Update balance
+                company.cash_balance += total_sale_amount
                 db.session.add_all(sales_to_add)
-                db.session.commit()  # Commit sales transaction
+                db.session.commit()
                 flash('Sales successfully added!', 'success')
             else:
-                flash('Sale processing failed.', 'danger')
+                flash('No valid sales processed.', 'danger')
 
         except Exception as e:
-            db.session.rollback()  # Rollback in case of error
-            print("Error processing sale:", e)
+            db.session.rollback()
             flash("An error occurred while processing the sale.", 'danger')
 
         return redirect(url_for('add_sale'))
 
     return render_template('add_sale.html', items=items, balance=balance)
-
-
+# *********************************************************************************************************
 
 @app.route('/view_reports')
 def view_reports():
@@ -195,18 +169,10 @@ def view_reports():
     company = Company.query.first()
     balance = company.cash_balance if company else 0
 
-    # Get paginated data in descending order
     purchases = Purchase.query.order_by(Purchase.timestamp.desc()).paginate(page=purchase_page, per_page=5)
     sales = Sale.query.order_by(Sale.timestamp.desc()).paginate(page=sale_page, per_page=5)
 
-    return render_template(
-        'view_reports.html',
-        purchases=purchases,
-        sales=sales,
-        purchase_page=purchase_page,
-        sale_page=sale_page,
-        balance=balance
-    )
+    return render_template('view_reports.html',purchases=purchases,sales=sales,balance=balance)
 
 if __name__ == '__main__':
     app.run(debug=True)
