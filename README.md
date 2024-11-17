@@ -31,43 +31,32 @@ Before you begin, ensure you have the following installed:
 
 1. Clone the repository:
 
-   ```bash
-   git clone https://github.com/yourusername/inventory-management-system.git
-   cd inventory-management-system
+   git clone https://github.com/SivakalimuthuR/Namma_kadai_
+   cd namma_kadai
 Create and activate a virtual environment:
 
-bash
-Copy code
 python3 -m venv venv
 source venv/bin/activate  # On Windows, use venv\Scripts\activate
 Install the required dependencies:
 
-bash
-Copy code
+
 pip install -r requirements.txt
 Set up your environment variables (optional but recommended for production):
 
-Create a .env file in the root of the project and add the following:
-
-makefile
-Copy code
 FLASK_APP=app.py
 FLASK_ENV=development
 Initialize the database:
 
-bash
-Copy code
-flask shell
+
+
 Inside the shell, run the following to create the database tables:
 
-python
-Copy code
+
 from app import db
 db.create_all()
 Run the application:
 
-bash
-Copy code
+
 flask run
 The application should now be running at http://127.0.0.1:5000/.
 
